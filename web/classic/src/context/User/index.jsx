@@ -49,6 +49,14 @@ export const UserProvider = ({ children }) => {
     }
   }, [state.user?.setting, i18n]);
 
+  // Sync quota_display_type from server to localStorage so the classic
+  // frontend displays the correct currency unit (CNY/USD/TOKENS/CUSTOM).
+  useEffect(() => {
+    if (state.user?.quota_display_type) {
+      localStorage.setItem('quota_display_type', state.user.quota_display_type);
+    }
+  }, [state.user?.quota_display_type]);
+
   return (
     <UserContext.Provider value={[state, dispatch]}>
       {children}

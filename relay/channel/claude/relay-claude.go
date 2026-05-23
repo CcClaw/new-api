@@ -478,8 +478,11 @@ func StreamResponseClaude2OpenAI(claudeResponse *dto.ClaudeResponse) *dto.ChatCo
 		}
 	} else if claudeResponse.Type == "content_block_delta" {
 		if claudeResponse.Delta != nil {
-			choice.Delta.Content = claudeResponse.Delta.Text
 			switch claudeResponse.Delta.Type {
+			case "text_delta":
+				if claudeResponse.Delta.Text != nil {
+					choice.Delta.SetContentString(*claudeResponse.Delta.Text)
+				}
 			case "input_json_delta":
 				tools = append(tools, dto.ToolCallResponse{
 					Type:  "function",
@@ -494,6 +497,11 @@ func StreamResponseClaude2OpenAI(claudeResponse *dto.ClaudeResponse) *dto.ChatCo
 				choice.Delta.ReasoningContent = &signatureContent
 			case "thinking_delta":
 				choice.Delta.ReasoningContent = claudeResponse.Delta.Thinking
+			default:
+				// Fallback for empty type or legacy text blocks
+				if claudeResponse.Delta.Text != nil {
+					choice.Delta.SetContentString(*claudeResponse.Delta.Text)
+				}
 			}
 		}
 	} else if claudeResponse.Type == "message_delta" {
@@ -619,6 +627,7 @@ func buildOpenAIStyleUsageFromClaudeUsage(usage *dto.Usage) dto.Usage {
 	clone.PromptTokens = totalInputTokens
 	clone.InputTokens = totalInputTokens
 	clone.TotalTokens = totalInputTokens + usage.CompletionTokens
+	clone.OutputTokens = usage.CompletionTokens
 	clone.UsageSemantic = "openai"
 	clone.UsageSource = "anthropic"
 	return clone
