@@ -88,6 +88,8 @@ jobs:
           tags: |
             q870664983/new-api:${{ env.TAG }}-${{ matrix.arch }}
             q870664983/new-api:latest-${{ matrix.arch }}
+            ghcr.io/ccclaw/new-api:${{ env.TAG }}-${{ matrix.arch }}
+            ghcr.io/ccclaw/new-api:latest-${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
