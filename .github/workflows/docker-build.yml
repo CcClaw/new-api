@@ -1,5 +1,9 @@
 name: Publish Docker image (Multi-arch)
 
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     tags:
