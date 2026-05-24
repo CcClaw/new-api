@@ -263,9 +263,10 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			if err != io.EOF {
 				logger.LogError(c, "scanner error: "+err.Error())
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonScannerErr, err)
+			} else {
+				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonEOF, nil)
 			}
 		}
-		info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonEOF, nil)
 	})
 
 	// 主循环等待完成或超时
