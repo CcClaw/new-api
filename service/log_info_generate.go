@@ -102,6 +102,18 @@ func appendStreamStatus(relayInfo *relaycommon.RelayInfo, other map[string]inter
 		"status":     status,
 		"end_reason": string(ss.EndReason),
 	}
+	if ss.StopSource != "" {
+		streamInfo["stop_source"] = ss.StopSource
+	}
+	if ss.SawDone {
+		streamInfo["saw_done"] = true
+	}
+	if ss.ScannerError != "" {
+		streamInfo["scanner_error"] = ss.ScannerError
+	}
+	if ss.LastChunkKind != "" {
+		streamInfo["last_chunk_kind"] = ss.LastChunkKind
+	}
 	if ss.EndError != nil {
 		streamInfo["end_error"] = ss.EndError.Error()
 	}

@@ -451,6 +451,9 @@ func TestStreamScannerHandler_StreamStatus_DoneReason(t *testing.T) {
 	assert.Nil(t, info.StreamStatus.EndError)
 	assert.True(t, info.StreamStatus.IsNormalEnd())
 	assert.False(t, info.StreamStatus.HasErrors())
+	assert.True(t, info.StreamStatus.SawDone)
+	assert.Equal(t, "scanner_done_marker", info.StreamStatus.StopSource)
+	assert.Equal(t, "done", info.StreamStatus.LastChunkKind)
 }
 
 func TestStreamScannerHandler_StreamStatus_EOFWithoutDone(t *testing.T) {
@@ -467,6 +470,9 @@ func TestStreamScannerHandler_StreamStatus_EOFWithoutDone(t *testing.T) {
 	require.NotNil(t, info.StreamStatus)
 	assert.Equal(t, relaycommon.StreamEndReasonEOF, info.StreamStatus.EndReason)
 	assert.True(t, info.StreamStatus.IsNormalEnd())
+	assert.False(t, info.StreamStatus.SawDone)
+	assert.Equal(t, "scanner_eof", info.StreamStatus.StopSource)
+	assert.Equal(t, "data", info.StreamStatus.LastChunkKind)
 }
 
 func TestStreamScannerHandler_StreamStatus_HandlerStop(t *testing.T) {
@@ -486,6 +492,7 @@ func TestStreamScannerHandler_StreamStatus_HandlerStop(t *testing.T) {
 	require.NotNil(t, info.StreamStatus)
 	assert.Equal(t, relaycommon.StreamEndReasonHandlerStop, info.StreamStatus.EndReason)
 	assert.True(t, info.StreamStatus.HasErrors())
+	assert.Equal(t, "handler_stop", info.StreamStatus.StopSource)
 }
 
 func TestStreamScannerHandler_StreamStatus_HandlerDone(t *testing.T) {
@@ -506,6 +513,8 @@ func TestStreamScannerHandler_StreamStatus_HandlerDone(t *testing.T) {
 	require.NotNil(t, info.StreamStatus)
 	assert.Equal(t, relaycommon.StreamEndReasonDone, info.StreamStatus.EndReason)
 	assert.False(t, info.StreamStatus.HasErrors())
+	assert.True(t, info.StreamStatus.SawDone)
+	assert.Equal(t, "handler_done", info.StreamStatus.StopSource)
 }
 
 func TestStreamScannerHandler_StreamStatus_Timeout(t *testing.T) {
@@ -543,6 +552,7 @@ func TestStreamScannerHandler_StreamStatus_Timeout(t *testing.T) {
 	require.NotNil(t, info.StreamStatus)
 	assert.Equal(t, relaycommon.StreamEndReasonTimeout, info.StreamStatus.EndReason)
 	assert.False(t, info.StreamStatus.IsNormalEnd())
+	assert.Equal(t, "main_timeout", info.StreamStatus.StopSource)
 }
 
 func TestStreamScannerHandler_StreamStatus_SoftErrors(t *testing.T) {

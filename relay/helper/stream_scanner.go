@@ -60,6 +60,19 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 		writeMutex sync.Mutex     // Mutex to protect concurrent writes
 		wg         sync.WaitGroup // 用于等待所有 goroutine 退出
 	)
+	waitForWorkers := func() {
+		done := make(chan struct{})
+		gopool.Go(func() {
+			wg.Wait()
+			close(done)
+		})
+
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			logger.LogError(c, "timeout waiting for goroutines to exit")
+		}
+	}
 
 	generalSettings := operation_setting.GetGeneralSetting()
 	pingEnabled := generalSettings.PingIntervalEnabled && !info.DisablePing
@@ -88,18 +101,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			pingTicker.Stop()
 		}
 
-		// 等待所有 goroutine 退出，最多等待5秒
-		done := make(chan struct{})
-		gopool.Go(func() {
-			wg.Wait()
-			close(done)
-		})
-
-		select {
-		case <-done:
-		case <-time.After(5 * time.Second):
-			logger.LogError(c, "timeout waiting for goroutines to exit")
-		}
+		waitForWorkers()
 
 		close(stopChan)
 	}()
@@ -207,6 +209,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			wg.Done()
 			if r := recover(); r != nil {
 				logger.LogError(c, fmt.Sprintf("scanner goroutine panic: %v", r))
+				info.StreamStatus.SetStopSource("scanner_panic")
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonPanic, fmt.Errorf("scanner panic: %v", r))
 			}
 			common.SafeSendBool(stopChan, true)
@@ -217,10 +220,13 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			// 检查是否需要停止
 			select {
 			case <-stopChan:
+				info.StreamStatus.SetStopSource("scanner_stop_chan")
 				return
 			case <-ctx.Done():
+				info.StreamStatus.SetStopSource("scanner_ctx_done")
 				return
 			case <-c.Request.Context().Done():
+				info.StreamStatus.SetStopSource("client_context_done")
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonClientGone, c.Request.Context().Err())
 				return
 			default:
@@ -231,28 +237,38 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			logger.LogDebug(c, "stream scanner data: %s", data)
 
 			if len(data) < 6 {
+				info.StreamStatus.SetLastChunkKind("short")
 				continue
 			}
 			if data[:5] != "data:" && data[:6] != "[DONE]" {
+				info.StreamStatus.SetLastChunkKind("non_data_line")
 				continue
 			}
 			data = data[5:]
 			data = strings.TrimSpace(data)
 			if data == "" {
+				info.StreamStatus.SetLastChunkKind("empty_data")
 				continue
 			}
 			if !strings.HasPrefix(data, "[DONE]") {
+				info.StreamStatus.SetLastChunkKind("data")
+				info.StreamStatus.SetStopSource("scanner_streaming")
 				info.SetFirstResponseTime()
 				info.ReceivedResponseCount++
 
 				select {
 				case dataChan <- data:
 				case <-ctx.Done():
+					info.StreamStatus.SetStopSource("data_send_ctx_done")
 					return
 				case <-stopChan:
+					info.StreamStatus.SetStopSource("data_send_stop_chan")
 					return
 				}
 			} else {
+				info.StreamStatus.MarkDone()
+				info.StreamStatus.SetLastChunkKind("done")
+				info.StreamStatus.SetStopSource("scanner_done_marker")
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonDone, nil)
 				logger.LogDebug(c, "received [DONE], stopping scanner")
 				return
@@ -262,21 +278,31 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 		if err := scanner.Err(); err != nil {
 			if err != io.EOF {
 				logger.LogError(c, "scanner error: "+err.Error())
+				info.StreamStatus.SetStopSource("scanner_error")
+				info.StreamStatus.SetScannerError(err)
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonScannerErr, err)
-			}
+			} else {
+				info.StreamStatus.SetStopSource("scanner_eof")
+				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonEOF, nil)
 		}
-		info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonEOF, nil)
+	}
 	})
 
 	// 主循环等待完成或超时
 	select {
 	case <-ticker.C:
+		info.StreamStatus.SetStopSource("main_timeout")
 		info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonTimeout, nil)
+		common.SafeSendBool(stopChan, true)
 	case <-stopChan:
 		// EndReason already set by the goroutine that triggered stopChan
 	case <-c.Request.Context().Done():
+		info.StreamStatus.SetStopSource("main_client_context_done")
 		info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonClientGone, c.Request.Context().Err())
+		common.SafeSendBool(stopChan, true)
 	}
+
+	waitForWorkers()
 
 	if info.StreamStatus.IsNormalEnd() && !info.StreamStatus.HasErrors() {
 		logger.LogInfo(c, fmt.Sprintf("stream ended: %s", info.StreamStatus.Summary()))

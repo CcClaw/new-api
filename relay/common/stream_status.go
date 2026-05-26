@@ -29,13 +29,17 @@ type StreamErrorEntry struct {
 }
 
 type StreamStatus struct {
-	EndReason  StreamEndReason
-	EndError   error
-	endOnce    sync.Once
+	EndReason StreamEndReason
+	EndError  error
+	endOnce   sync.Once
 
-	mu         sync.Mutex
-	Errors     []StreamErrorEntry
-	ErrorCount int
+	mu            sync.Mutex
+	Errors        []StreamErrorEntry
+	ErrorCount    int
+	SawDone       bool
+	StopSource    string
+	ScannerError  string
+	LastChunkKind string
 }
 
 func NewStreamStatus() *StreamStatus {
@@ -65,6 +69,44 @@ func (s *StreamStatus) RecordError(msg string) {
 			Timestamp: time.Now(),
 		})
 	}
+}
+
+func (s *StreamStatus) MarkDone() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.SawDone = true
+}
+
+func (s *StreamStatus) SetStopSource(source string) {
+	if s == nil || source == "" {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.StopSource == "" {
+		s.StopSource = source
+	}
+}
+
+func (s *StreamStatus) SetScannerError(err error) {
+	if s == nil || err == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ScannerError = err.Error()
+}
+
+func (s *StreamStatus) SetLastChunkKind(kind string) {
+	if s == nil || kind == "" {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.LastChunkKind = kind
 }
 
 func (s *StreamStatus) HasErrors() bool {
@@ -104,6 +146,18 @@ func (s *StreamStatus) Summary() string {
 		fmt.Fprintf(b, " end_error=%q", s.EndError.Error())
 	}
 	s.mu.Lock()
+	if s.StopSource != "" {
+		fmt.Fprintf(b, " stop_source=%s", s.StopSource)
+	}
+	if s.SawDone {
+		fmt.Fprintf(b, " saw_done=true")
+	}
+	if s.ScannerError != "" {
+		fmt.Fprintf(b, " scanner_error=%q", s.ScannerError)
+	}
+	if s.LastChunkKind != "" {
+		fmt.Fprintf(b, " last_chunk=%s", s.LastChunkKind)
+	}
 	if s.ErrorCount > 0 {
 		fmt.Fprintf(b, " soft_errors=%d", s.ErrorCount)
 	}

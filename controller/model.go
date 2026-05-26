@@ -3,7 +3,10 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -23,6 +26,57 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
 )
+
+var (
+	modelContextLengths   map[string]int
+	modelContextLengthsMu sync.RWMutex
+)
+
+func resolveModelContextLengths() map[string]int {
+	modelContextLengthsMu.RLock()
+	if modelContextLengths != nil {
+		defer modelContextLengthsMu.RUnlock()
+		return modelContextLengths
+	}
+	modelContextLengthsMu.RUnlock()
+
+	modelContextLengthsMu.Lock()
+	defer modelContextLengthsMu.Unlock()
+	if modelContextLengths != nil {
+		return modelContextLengths
+	}
+
+	result := make(map[string]int)
+	var rows []struct {
+		ModelName string
+		Tags      string
+	}
+	if err := model.DB.Raw("SELECT model_name, tags FROM models WHERE tags != ''").Scan(&rows).Error; err != nil {
+		common.SysLog(fmt.Sprintf("resolveModelContextLengths: %v", err))
+		modelContextLengths = result
+		return result
+	}
+
+	re := regexp.MustCompile(`(\d+(?:\.\d+)?)(K|M)`)
+	for _, row := range rows {
+		matches := re.FindStringSubmatch(row.Tags)
+		if len(matches) == 3 {
+			num, err := strconv.ParseFloat(matches[1], 64)
+			if err != nil {
+				continue
+			}
+			switch matches[2] {
+			case "K":
+				result[row.ModelName] = int(num * 1000)
+			case "M":
+				result[row.ModelName] = int(num * 1000000)
+			}
+		}
+	}
+
+	modelContextLengths = result
+	return result
+}
 
 // https://platform.openai.com/docs/api-reference/models/list
 
@@ -275,6 +329,13 @@ func ListModels(c *gin.Context, modelType int) {
 	userOpenAiModels := make([]dto.OpenAIModels, 0, len(userModelNames))
 	for _, modelName := range userModelNames {
 		userOpenAiModels = append(userOpenAiModels, buildOpenAIModel(modelName, ownerByModel))
+	}
+
+	ctxLenMap := resolveModelContextLengths()
+	for i, m := range userOpenAiModels {
+		if ctx, ok := ctxLenMap[m.Id]; ok {
+			userOpenAiModels[i].ContextLength = ctx
+		}
 	}
 
 	switch modelType {

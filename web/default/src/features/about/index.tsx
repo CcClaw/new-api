@@ -43,79 +43,43 @@ function EmptyAboutState() {
 
   return (
     <div className='flex min-h-[60vh] items-center justify-center p-8'>
-      <div className='max-w-2xl space-y-6 text-center'>
-        <div className='flex justify-center'>
-          <Construction className='text-muted-foreground h-24 w-24' />
-        </div>
-        <div className='space-y-2'>
-          <h2 className='text-2xl font-bold'>{t('No About Content Set')}</h2>
-          <p className='text-muted-foreground'>
-            {t(
-              'The administrator has not configured any about content yet. You can set it in the settings page, supporting HTML or URL.'
-            )}
+      <div className='max-w-2xl w-full space-y-8'>
+        <div className='text-center space-y-3'>
+          <h2 className='text-2xl font-bold'>{t('About This Service')}</h2>
+          <p className='text-muted-foreground text-sm leading-relaxed max-w-lg mx-auto'>
+            {t('A unified AI API gateway providing access to multiple models including GPT, Claude, Gemini, and more through a single API key.')}
           </p>
         </div>
-        <div className='space-y-4 text-sm'>
-          <p>
-            {t('New API Project Repository:')}{' '}
-            <a
-              href='https://github.com/QuantumNous/new-api'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary hover:underline'
-            >
-              {t('https://github.com/QuantumNous/new-api')}
-            </a>
-          </p>
-          <p className='text-muted-foreground'>
-            <a
-              href='https://github.com/QuantumNous/new-api'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary hover:underline'
-            >
-              {t('NewAPI')}
-            </a>{' '}
-            © {currentYear}{' '}
-            <a
-              href='https://github.com/QuantumNous'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary hover:underline'
-            >
-              {t('QuantumNous')}
-            </a>{' '}
-            {t('| Based on')}{' '}
-            <a
-              href='https://github.com/songquanpeng/one-api'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary hover:underline'
-            >
-              {t('One API')}
-            </a>{' '}
-            © 2023{' '}
-            <a
-              href='https://github.com/songquanpeng'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary hover:underline'
-            >
-              {t('JustSong')}
-            </a>
-          </p>
-          <p className='text-muted-foreground'>
-            {t('This project must be used in compliance with the')}{' '}
-            <a
-              href='https://github.com/QuantumNous/new-api/blob/main/LICENSE'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary hover:underline'
-            >
-              {t('AGPL v3.0 License')}
-            </a>
-            .
-          </p>
+
+        <div className='grid gap-4 sm:grid-cols-2'>
+          <div className='rounded-lg border bg-card p-5 space-y-2'>
+            <h3 className='font-semibold text-sm'>{t('Integrated Models')}</h3>
+            <p className='text-sm text-muted-foreground leading-relaxed'>
+              {t('GPT-5 series, Claude Opus & Sonnet, DeepSeek, Gemini, Qwen, GLM, MiniMax, Kimi, and more.')}
+            </p>
+          </div>
+          <div className='rounded-lg border bg-card p-5 space-y-2'>
+            <h3 className='font-semibold text-sm'>{t('API Compatibility')}</h3>
+            <p className='text-sm text-muted-foreground leading-relaxed'>
+              {t('OpenAI chat/completions, Claude Messages, and more. Compatible with standard SDKs and tools.')}
+            </p>
+          </div>
+          <div className='rounded-lg border bg-card p-5 space-y-2'>
+            <h3 className='font-semibold text-sm'>{t('Access & Management')}</h3>
+            <p className='text-sm text-muted-foreground leading-relaxed'>
+              {t('User tokens, group-based permissions, usage tracking, and flexible billing options.')}
+            </p>
+          </div>
+          <div className='rounded-lg border bg-card p-5 space-y-2'>
+            <h3 className='font-semibold text-sm'>{t('Service Status')}</h3>
+            <p className='text-sm text-muted-foreground leading-relaxed'>
+              {currentYear} {t('operational and actively maintained.')}
+            </p>
+          </div>
+        </div>
+
+        <div className='text-center text-xs text-muted-foreground pt-4 border-t'>
+          <p>{t('Powered by NewAPI. For integration details, see the')} <a href='/docs' className='text-primary hover:underline'>{t('Docs')}</a>.</p>
         </div>
       </div>
     </div>

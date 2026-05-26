@@ -161,17 +161,27 @@ func TestStreamStatus_Summary(t *testing.T) {
 	t.Parallel()
 
 	s := NewStreamStatus()
+	s.MarkDone()
+	s.SetStopSource("scanner_done_marker")
+	s.SetLastChunkKind("done")
 	s.SetEndReason(StreamEndReasonDone, nil)
 	summary := s.Summary()
 	assert.Contains(t, summary, "reason=done")
+	assert.Contains(t, summary, "saw_done=true")
+	assert.Contains(t, summary, "stop_source=scanner_done_marker")
+	assert.Contains(t, summary, "last_chunk=done")
 	assert.NotContains(t, summary, "soft_errors")
 
 	s2 := NewStreamStatus()
+	s2.SetStopSource("scanner_error")
+	s2.SetScannerError(fmt.Errorf("unexpected EOF"))
 	s2.SetEndReason(StreamEndReasonTimeout, nil)
 	s2.RecordError("bad json")
 	s2.RecordError("write failed")
 	summary2 := s2.Summary()
 	assert.Contains(t, summary2, "reason=timeout")
+	assert.Contains(t, summary2, "stop_source=scanner_error")
+	assert.Contains(t, summary2, "scanner_error=\"unexpected EOF\"")
 	assert.Contains(t, summary2, "soft_errors=2")
 }
 
