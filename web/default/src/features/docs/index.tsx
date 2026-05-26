@@ -1,7 +1,5 @@
 import { BookOpen, Terminal, Globe, MessageSquare, AlertTriangle, Zap } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import { PublicLayout } from '@/components/layout'
-import { cn } from '@/lib/utils'
 
 function Section({ icon: Icon, title, children }: { icon: React.ElementType, title: string, children: React.ReactNode }) {
   return (
@@ -31,58 +29,52 @@ function InlineCode({ children }: { children: string }) {
 }
 
 export function Docs() {
-  const { t } = useTranslation()
-
   return (
     <PublicLayout>
       <div className="mx-auto max-w-4xl px-4 py-12">
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-3">
             <BookOpen className="h-7 w-7 text-primary" />
-            <h1 className="text-3xl font-bold tracking-tight">{t('Integration Guide')}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">接入指南</h1>
           </div>
           <p className="text-muted-foreground text-sm">
-            {t('How to integrate with sine.fmusic.cc NewAPI service using OpenAI or Claude compatible SDKs.')}
+            本文档介绍如何接入 <InlineCode>sine.fmusic.cc</InlineCode> 的 NewAPI 服务。支持 OpenAI 和 Claude 兼容 SDK。
           </p>
         </div>
 
-        <Section icon={Globe} title={t('Base Information')}>
+        <Section icon={Globe} title="基本信息">
           <ul className="list-disc pl-5 space-y-1">
-            <li>{t('Service URL:')} <InlineCode>https://sine.fmusic.cc</InlineCode></li>
-            <li>{t('Auth: Bearer Token')}</li>
-            <li>{t('OpenAI prefix:')} <InlineCode>https://sine.fmusic.cc/v1</InlineCode></li>
-            <li>{t('Claude prefix:')} <InlineCode>https://sine.fmusic.cc</InlineCode></li>
+            <li>服务地址：<InlineCode>https://sine.fmusic.cc</InlineCode></li>
+            <li>鉴权方式：Bearer Token</li>
+            <li>OpenAI 前缀：<InlineCode>https://sine.fmusic.cc/v1</InlineCode></li>
+            <li>Claude 前缀：<InlineCode>https://sine.fmusic.cc</InlineCode></li>
           </ul>
-          <p>{t('Add your API key to requests:')}</p>
+          <p>请求时在 <InlineCode>Authorization</InlineCode> 头中携带你的 API Key：</p>
           <CodeBlock>{`Authorization: Bearer YOUR_API_KEY`}</CodeBlock>
         </Section>
 
-        <Section icon={Zap} title={t('Recommended Approach')}>
+        <Section icon={AlertTriangle} title="重要提示">
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <span className="font-medium text-sm">{t('Important')}</span>
-            </div>
             <p className="text-sm text-muted-foreground">
-              {t('Currently, /v1/chat/completions is significantly more stable than /v1/responses. We recommend using chat/completions and /v1/messages as the primary integration paths.')}
+              当前环境中，<InlineCode>/v1/chat/completions</InlineCode> 的稳定性明显好于 <InlineCode>/v1/responses</InlineCode>。推荐优先使用 <InlineCode>chat/completions</InlineCode> 和 <InlineCode>/v1/messages</InlineCode>。
             </p>
           </div>
           <ul className="list-disc pl-5 space-y-1 mt-4">
-            <li>{t('OpenAI: Use')} <InlineCode>/v1/chat/completions</InlineCode></li>
-            <li>{t('Claude: Use')} <InlineCode>/v1/messages</InlineCode></li>
-            <li><strong>{t('Not recommended:')}</strong> <InlineCode>/v1/responses</InlineCode></li>
+            <li>OpenAI SDK：使用 <InlineCode>/v1/chat/completions</InlineCode></li>
+            <li>Claude SDK / Claude Code：使用 <InlineCode>/v1/messages</InlineCode></li>
+            <li><strong>暂不推荐：</strong><InlineCode>/v1/responses</InlineCode>（部分上游链路有流尾兼容问题）</li>
           </ul>
         </Section>
 
-        <Section icon={Terminal} title={t('OpenAI Compatible')}>
-          <h3 className="text-base font-medium mt-0 mb-2">cURL</h3>
+        <Section icon={Terminal} title="OpenAI 兼容接入">
+          <h3 className="text-base font-medium mt-0 mb-2">cURL 测试</h3>
           <CodeBlock language="bash">{`curl "https://sine.fmusic.cc/v1/chat/completions" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{
     "model": "gpt-5.5",
     "messages": [
-      {"role": "user", "content": "Hello, introduce yourself."}
+      {"role": "user", "content": "你好，请简单介绍一下你自己。"}
     ],
     "stream": false
   }'`}</CodeBlock>
@@ -99,7 +91,7 @@ const client = new OpenAI({
 const completion = await client.chat.completions.create({
   model: 'gpt-5.5',
   messages: [
-    { role: 'user', content: 'Hello, introduce yourself.' },
+    { role: 'user', content: '你好，请简单介绍一下你自己。' },
   ],
 });
 
@@ -117,15 +109,15 @@ client = OpenAI(
 resp = client.chat.completions.create(
     model="gpt-5.5",
     messages=[
-        {"role": "user", "content": "Hello, introduce yourself."}
+        {"role": "user", "content": "你好，请简单介绍一下你自己。"}
     ],
 )
 
 print(resp.choices[0].message.content)`}</CodeBlock>
         </Section>
 
-        <Section icon={MessageSquare} title={t('Claude Compatible')}>
-          <h3 className="text-base font-medium mt-0 mb-2">cURL</h3>
+        <Section icon={MessageSquare} title="Claude 兼容接入">
+          <h3 className="text-base font-medium mt-0 mb-2">cURL 测试</h3>
           <CodeBlock language="bash">{`curl "https://sine.fmusic.cc/v1/messages" \\
   -H "Content-Type: application/json" \\
   -H "x-api-key: YOUR_API_KEY" \\
@@ -134,7 +126,7 @@ print(resp.choices[0].message.content)`}</CodeBlock>
     "model": "claude-sonnet-4-6",
     "max_tokens": 1024,
     "messages": [
-      {"role": "user", "content": "Hello, introduce yourself."}
+      {"role": "user", "content": "你好，请简单介绍一下你自己。"}
     ]
   }'`}</CodeBlock>
 
@@ -151,7 +143,7 @@ const message = await client.messages.create({
   model: 'claude-sonnet-4-6',
   max_tokens: 1024,
   messages: [
-    { role: 'user', content: 'Hello, introduce yourself.' },
+    { role: 'user', content: '你好，请简单介绍一下你自己。' },
   ],
 });
 
@@ -163,7 +155,10 @@ const text = message.content
 console.log(text);`}</CodeBlock>
         </Section>
 
-        <Section icon={Zap} title={t('Claude Code Configuration')}>
+        <Section icon={Zap} title="Claude Code 配置">
+          <p className="text-sm text-muted-foreground mb-3">
+            如果你使用 Claude Code，可以参考以下环境变量配置：
+          </p>
           <CodeBlock language="json">{`{
   "env": {
     "ANTHROPIC_AUTH_TOKEN": "YOUR_API_KEY",
@@ -179,8 +174,8 @@ console.log(text);`}</CodeBlock>
 }`}</CodeBlock>
         </Section>
 
-        <Section icon={Zap} title={t('Streaming Examples')}>
-          <h3 className="text-base font-medium mt-0 mb-2">{t('OpenAI Streaming')}</h3>
+        <Section icon={Zap} title="流式输出示例">
+          <h3 className="text-base font-medium mt-0 mb-2">OpenAI 流式</h3>
           <CodeBlock language="js">{`import OpenAI from 'openai';
 
 const client = new OpenAI({
@@ -192,7 +187,7 @@ const stream = await client.chat.completions.create({
   model: 'gpt-5.5',
   stream: true,
   messages: [
-    { role: 'user', content: 'Describe Go in three sentences.' },
+    { role: 'user', content: '用三句话介绍 Go 语言。' },
   ],
 });
 
@@ -201,7 +196,7 @@ for await (const chunk of stream) {
   if (text) process.stdout.write(text);
 }`}</CodeBlock>
 
-          <h3 className="text-base font-medium mt-6 mb-2">{t('Claude Streaming')}</h3>
+          <h3 className="text-base font-medium mt-6 mb-2">Claude 流式</h3>
           <CodeBlock language="js">{`import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
@@ -213,7 +208,7 @@ const stream = await client.messages.stream({
   model: 'claude-sonnet-4-6',
   max_tokens: 1024,
   messages: [
-    { role: 'user', content: 'Describe Go in three sentences.' },
+    { role: 'user', content: '用三句话介绍 Go 语言。' },
   ],
 });
 
@@ -224,25 +219,31 @@ for await (const event of stream) {
 }`}</CodeBlock>
         </Section>
 
-        <Section icon={AlertTriangle} title={t('FAQ')}>
-          <div className={cn('space-y-5')}>
+        <Section icon={AlertTriangle} title="常见问题">
+          <div className="space-y-5">
             <div>
-              <h3 className="text-sm font-semibold mb-1">{t('Q: Why does gpt-5.5 work sometimes but fail other times?')}</h3>
+              <h3 className="text-sm font-semibold mb-1">Q: 为什么 gpt-5.5 有时能用，有时报错？</h3>
               <p className="text-sm text-muted-foreground">
-                {t('This is usually not a model permission issue, but depends on the request path. chat/completions is more stable, while responses may trigger stream compatibility issues.')}
+                通常是请求路径不同导致的，不是模型权限问题。<InlineCode>chat/completions</InlineCode> 更稳定，<InlineCode>responses</InlineCode> 容易触发流尾兼容问题。
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-1">{t('Q: What baseURL should I use?')}</h3>
+              <h3 className="text-sm font-semibold mb-1">Q: 不同 SDK 应该填什么地址？</h3>
               <p className="text-sm text-muted-foreground">
-                {t('For OpenAI SDK:')} <InlineCode>https://sine.fmusic.cc/v1</InlineCode><br />
-                {t('For Anthropic SDK / Claude Code:')} <InlineCode>https://sine.fmusic.cc</InlineCode>
+                OpenAI SDK 填 <InlineCode>https://sine.fmusic.cc/v1</InlineCode><br />
+                Anthropic SDK / Claude Code 填 <InlineCode>https://sine.fmusic.cc</InlineCode>
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-1">{t('Q: How to debug connection issues?')}</h3>
+              <h3 className="text-sm font-semibold mb-1">Q: 接入失败怎么排查？</h3>
               <p className="text-sm text-muted-foreground">
-                {t('Test with a simple cURL request first. Verify your API key, model name, and request path. Avoid /v1/responses for now.')}
+                1. 确认 API Key 有效 2. 确认请求路径正确（优先用 chat/completions）3. 确认模型名存在 4. 先用 curl 验证连通性
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-1">Q: 如何获取 API Key？</h3>
+              <p className="text-sm text-muted-foreground">
+                登录平台后在「令牌」页面创建新的 Key，选择对应的模型分组即可使用。
               </p>
             </div>
           </div>

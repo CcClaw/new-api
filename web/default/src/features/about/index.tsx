@@ -1,23 +1,4 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { useQuery } from '@tanstack/react-query'
-import { Construction } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from '@/components/ui/markdown'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -38,48 +19,47 @@ function isLikelyHtml(value: string) {
 }
 
 function EmptyAboutState() {
-  const { t } = useTranslation()
   const currentYear = new Date().getFullYear()
 
   return (
     <div className='flex min-h-[60vh] items-center justify-center p-8'>
       <div className='max-w-2xl w-full space-y-8'>
         <div className='text-center space-y-3'>
-          <h2 className='text-2xl font-bold'>{t('About This Service')}</h2>
+          <h2 className='text-2xl font-bold'>关于本服务</h2>
           <p className='text-muted-foreground text-sm leading-relaxed max-w-lg mx-auto'>
-            {t('A unified AI API gateway providing access to multiple models including GPT, Claude, Gemini, and more through a single API key.')}
+            统一的 AI API 网关，支持 GPT、Claude、Gemini 等多种模型，只需一个 API Key 即可接入。
           </p>
         </div>
 
         <div className='grid gap-4 sm:grid-cols-2'>
           <div className='rounded-lg border bg-card p-5 space-y-2'>
-            <h3 className='font-semibold text-sm'>{t('Integrated Models')}</h3>
+            <h3 className='font-semibold text-sm'>已接入模型</h3>
             <p className='text-sm text-muted-foreground leading-relaxed'>
-              {t('GPT-5 series, Claude Opus & Sonnet, DeepSeek, Gemini, Qwen, GLM, MiniMax, Kimi, and more.')}
+              GPT-5 系列、Claude Opus & Sonnet、DeepSeek、Gemini、Qwen、GLM、MiniMax、Kimi 等。
             </p>
           </div>
           <div className='rounded-lg border bg-card p-5 space-y-2'>
-            <h3 className='font-semibold text-sm'>{t('API Compatibility')}</h3>
+            <h3 className='font-semibold text-sm'>接口兼容</h3>
             <p className='text-sm text-muted-foreground leading-relaxed'>
-              {t('OpenAI chat/completions, Claude Messages, and more. Compatible with standard SDKs and tools.')}
+              支持 OpenAI chat/completions、Claude Messages 等接口，兼容主流 SDK 和工具。
             </p>
           </div>
           <div className='rounded-lg border bg-card p-5 space-y-2'>
-            <h3 className='font-semibold text-sm'>{t('Access & Management')}</h3>
+            <h3 className='font-semibold text-sm'>权限与用量</h3>
             <p className='text-sm text-muted-foreground leading-relaxed'>
-              {t('User tokens, group-based permissions, usage tracking, and flexible billing options.')}
+              支持用户令牌、分组权限、用量统计和灵活的计费方式。
             </p>
           </div>
           <div className='rounded-lg border bg-card p-5 space-y-2'>
-            <h3 className='font-semibold text-sm'>{t('Service Status')}</h3>
+            <h3 className='font-semibold text-sm'>服务状态</h3>
             <p className='text-sm text-muted-foreground leading-relaxed'>
-              {currentYear} {t('operational and actively maintained.')}
+              {currentYear} 年持续运行和积极维护中。
             </p>
           </div>
         </div>
 
         <div className='text-center text-xs text-muted-foreground pt-4 border-t'>
-          <p>{t('Powered by NewAPI. For integration details, see the')} <a href='/docs' className='text-primary hover:underline'>{t('Docs')}</a>.</p>
+          <p>由 NewAPI 驱动。查看 <a href='/docs' className='text-primary hover:underline'>接入文档</a> 了解更多。</p>
         </div>
       </div>
     </div>
@@ -125,7 +105,7 @@ export function About() {
         <iframe
           src={rawContent}
           className='h-[calc(100vh-3.5rem)] w-full border-0'
-          title={t('About')}
+          title={t('关于')}
         />
       </PublicLayout>
     )
