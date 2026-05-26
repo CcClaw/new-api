@@ -1,21 +1,19 @@
 # Local Patches
 
-Updated: `2026-05-26 23:00`
+Updated: `2026-05-27 02:40`
 
-## rc.9 Merge Notes
+## rc.10 Merge Notes
 
-- Merged upstream `v1.0.0-rc.9` from QuantumNous.
-- Stream scanner conflict resolved: kept local EOF/stop-source diagnostics (patch `08`/`09`) over rc.9's unconditional EOF fallback.
-- Claude relay-claude.go auto-merged cleanly with local patches.
-- Frontend changes: docs page (`/docs` route), about page rewritten without default GitHub/QuantumNous placeholder.
-- The `docs_link` admin setting should be empty or set to `/docs` so the nav bar links to internal documentation.
+- Merged upstream `v1.0.0-rc.10` from QuantumNous onto `v1.0.0-rc.9-patched`.
+- No merge conflicts. rc.10 changes are limited to frontend UI fixes (theme presets, log filters, form NaN handling).
+- Stream relay files untouched by rc.10 — all local patches (01-09) remain compatible.
 
 ## Patch Baseline
 
-- Upstream base: `v1.0.0-rc.9`
+- Upstream base: `v1.0.0-rc.10`
 - Current production image: `ghcr.io/ccclaw/new-api:v1.0.0-rc.8-patched-8-amd64`
-- Local build branch: `v1.0.0-rc.9-patched`
-- Recommended next image tag: `ghcr.io/ccclaw/new-api:v1.0.0-rc.9-patched-1-amd64`
+- Local build branch: `v1.0.0-rc.10-patched`
+- Recommended next image tag: `ghcr.io/ccclaw/new-api:v1.0.0-rc.10-patched-1-amd64`
 
 ## Patch List
 
